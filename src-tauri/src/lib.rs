@@ -7,6 +7,7 @@ pub mod menu;
 pub mod model;
 pub mod pds;
 pub mod state;
+#[cfg(desktop)]
 pub mod tray;
 pub mod transfer;
 pub mod window;
