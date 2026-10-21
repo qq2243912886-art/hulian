@@ -184,10 +184,25 @@ jobs:
       # 这里直接复用并用 sdkmanager 安装缺失组件即可。
       - name: 安装 Android SDK 组件（platform 35 / build-tools 35 / NDK 27）
         run: |
+          set -e
           SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          # runner 预装 SDK 但没有把 cmdline-tools 放进 PATH，这里定位 sdkmanager；
+          # 如果 runner 上确实没有 SDK，则回退为手动下载 cmdline-tools。
+          if [ ! -x "$SDK/cmdline-tools" ] && ! find "$SDK/cmdline-tools" -maxdepth 3 -name sdkmanager -type f 2>/dev/null | grep -q .; then
+            echo "runner 上未找到预装 Android SDK，改为下载 cmdline-tools…"
+            SDK="$HOME/android-sdk"
+            mkdir -p "$SDK/cmdline-tools"
+            curl -fsSL -o /tmp/cmdtools.zip https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+            unzip -q /tmp/cmdtools.zip -d "$SDK/cmdline-tools"
+            mv "$SDK/cmdline-tools/cmdline-tools" "$SDK/cmdline-tools/latest"
+          fi
           echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
-          export ANDROID_HOME="$SDK" ANDROID_SDK_ROOT="$SDK"
+          SDKM="$(find "$SDK/cmdline-tools" -maxdepth 3 -name sdkmanager -type f | head -1)"
+          echo "找到 sdkmanager: $SDKM"
+          echo "$(dirname "$SDKM")" >> "$GITHUB_PATH"
+          export PATH="$(dirname "$SDKM"):$PATH"
+          sdkmanager --version
           yes | sdkmanager --licenses > /dev/null || true
           sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
 
