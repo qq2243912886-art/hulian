@@ -1,0 +1,14 @@
+node_modules/
+dist/
+target/
+src-tauri/target/
+.toolchain/
+.cache/
+.pnpm-store/
+.pnpm-cache/
+.DS_Store
+*.local
+.env
+docs/私有-*.md
+release/
+.run/

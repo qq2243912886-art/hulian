@@ -1,0 +1,32 @@
+{
+  "name": "hulian",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "互联 · 轻量跨端文件互传",
+  "scripts": {
+    "dev": "vite --port 1420 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "tauri": "tauri",
+    "dev:app": "tauri dev",
+    "build:app": "tauri build",
+    "dev:mock": "VITE_MOCK=1 vite --port 1420 --strictPort",
+    "build:mock": "VITE_MOCK=1 vite build"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@tauri-apps/cli": "^2.12.3",
+    "svelte": "^5.57.2",
+    "svelte-check": "^4.7.7",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.4"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.12.4",
+    "@tauri-apps/plugin-autostart": "^2.7.0",
+    "@tauri-apps/plugin-dialog": "^2.8.3",
+    "@tauri-apps/plugin-opener": "^2.7.2"
+  }
+}
