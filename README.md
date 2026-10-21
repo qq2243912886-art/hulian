@@ -1,5 +1,8 @@
 # 互联 · LinkUp
 
+[![构建三端产物](https://github.com/qq2243912886-art/hulian/actions/workflows/build.yml/badge.svg)](https://github.com/qq2243912886-art/hulian/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/qq2243912886-art/hulian?label=release)](https://github.com/qq2243912886-art/hulian/releases)
+
 > 轻量跨端文件互传：只在你想传的时候，才传。
 
 「互联」是一个基于 [Tauri 2](https://tauri.app/) 的跨端文件互传小工具，覆盖 **macOS / Windows / Android** 三端。

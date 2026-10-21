@@ -83,7 +83,7 @@ jobs:
       - name: 上传 macOS 产物
         uses: actions/upload-artifact@v4
         with:
-          name: linkup-macos-arm64
+          name: hulian-macos-arm64
           path: |
             src-tauri/target/release/bundle/dmg/*.dmg
             LinkUp.app.zip
@@ -137,7 +137,7 @@ jobs:
       - name: 上传 Windows 产物
         uses: actions/upload-artifact@v4
         with:
-          name: linkup-windows-x64
+          name: hulian-windows-x64
           path: src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: error
           retention-days: 14
@@ -178,11 +178,16 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: 安装 Android SDK 命令行工具
-        uses: android-actions/setup-android@v3
-
-      - name: 安装 SDK 组件（platform 35 / build-tools 35 / NDK 27）
+      # 说明：不要使用 android-actions/setup-android@v3 —— 该 action 内部会安装早已下线的
+      # `tools` 包，在当前 runner 的 cmdline-tools 16 上直接报错（Warning: Failed to find
+      # package 'tools' / exit code 1）。GitHub 的 ubuntu runner 预装了 Android SDK，
+      # 这里直接复用并用 sdkmanager 安装缺失组件即可。
+      - name: 安装 Android SDK 组件（platform 35 / build-tools 35 / NDK 27）
         run: |
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          export ANDROID_HOME="$SDK" ANDROID_SDK_ROOT="$SDK"
           yes | sdkmanager --licenses > /dev/null || true
           sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
 
@@ -225,7 +230,7 @@ jobs:
       - name: 上传 Android 产物
         uses: actions/upload-artifact@v4
         with:
-          name: linkup-android-debug-apk
+          name: hulian-android-debug-apk
           path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
           retention-days: 14
