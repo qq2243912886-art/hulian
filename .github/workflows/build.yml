@@ -20,9 +20,14 @@ name: 构建三端产物
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "可选：构建完成后把 Windows/Android 产物上传到该 tag 的 GitHub Release（留空则只在 Actions 里保存 artifacts）"
+        required: false
+        type: string
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: build-${{ github.workflow }}-${{ github.ref }}
@@ -134,6 +139,14 @@ jobs:
         # Windows 上显式指定 nsis 才会产出安装包。
         run: pnpm tauri build --bundles nsis
 
+      - name: 附加 Windows 安装包到 GitHub Release（仅手动触发且指定 release_tag 时）
+        if: ${{ inputs.release_tag != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          EXE=$(find src-tauri/target/release/bundle/nsis -name "*.exe" | head -1)
+          gh release upload "${{ inputs.release_tag }}" "$EXE#hulian-0.1.0-windows-x64-setup.exe" --clobber -R "${GITHUB_REPOSITORY}"
+
       - name: 上传 Windows 产物
         uses: actions/upload-artifact@v4
         with:
@@ -239,8 +252,15 @@ jobs:
             pnpm tauri android init --ci
           fi
 
-      - name: 构建 debug APK
-        run: pnpm tauri android build --debug --apk
+      - name: 构建 debug APK（arm64-v8a，体积小；其他 ABI 可本地加 -t armv7）
+        run: pnpm tauri android build --debug --apk -t aarch64
+
+      - name: 输出 APK 路径与 SHA-256（便于核对）
+        run: |
+          APK=$(find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" | head -1)
+          echo "APK=$APK"
+          ls -la "$APK"
+          sha256sum "$APK" | tee apk-sha256.txt
 
       - name: 上传 Android 产物
         uses: actions/upload-artifact@v4
@@ -249,6 +269,14 @@ jobs:
           path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: 附加 APK 到 GitHub Release（仅手动触发且指定 release_tag 时）
+        if: ${{ inputs.release_tag != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APK=$(find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" | head -1)
+          gh release upload "${{ inputs.release_tag }}" "$APK#hulian-0.1.0-android-arm64-debug.apk" --clobber -R "${GITHUB_REPOSITORY}"
 
 # ---------------------------------------------------------------------------
 # 可选：代码签名 / 公证（默认不启用；未配置 secrets 时三端产物均为未签名）
